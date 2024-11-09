@@ -53,6 +53,7 @@
                       <div class="title"><?php echo $full_name; ?></div>
                       <div class="sub text-muted"><?php echo $email; ?></div>
                     </td>
+                    <td class="text-center w-15p"><?php echo $item['timezone']; ?></td>
                     <td class="text-center w-15p"><?php echo $created; ?></td>
                     <td class="text-center w-5p"><?php echo $item_status; ?></td>
                     <td class="text-center w-5p"><?php echo $show_item_buttons; ?></td>

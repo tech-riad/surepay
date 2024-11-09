@@ -5,25 +5,59 @@ class Staffs_model extends MY_Model
 {
 
     protected $tb_main;
+    protected $filter_accepted;
+    protected $field_search_accepted;
 
     public function __construct()
     {
         parent::__construct();
         $this->tb_main     = STAFFS;
+
+        
+        $this->filter_accepted = array_keys(app_config('template')['status']);
+        unset($this->filter_accepted['3']);
+        $this->field_search_accepted = app_config('config')['search']['staffs'];
     }
+
+
 
     public function list_items($params = null, $option = null)
     {
         $result = null;
        
-        
-        $this->db->select('id,first_name, last_name, email,timezone');
-        $this->db->from($this->tb_main);
-        $this->db->order_by('id', 'desc');
-        $this->db->limit($params['limit'], 0);
-        $query = $this->db->get();
-        $result = $query->result_array();
-        
+        if ($option['task'] == 'list-items') {
+            $this->db->select('id,first_name, last_name, email,timezone');
+            $this->db->from($this->tb_main);
+
+            // filter
+            if ($params['filter']['status'] != 3 && in_array($params['filter']['status'], $this->filter_accepted)) {
+                $this->db->where('status', $params['filter']['status']);
+            }
+            //Search
+            if ($params['search']['field'] === 'all') {
+                $i = 1;
+                foreach ($this->field_search_accepted as $column) {
+                    if ($column != 'all') {
+                        if($i == 1){
+                            $this->db->like($column, $params['search']['query']); 
+                        }elseif ($i > 1) {
+                            $this->db->or_like($column, $params['search']['query']); 
+                        }
+                        $i++;
+                    }
+                }
+            }elseif (in_array($params['search']['field'], $this->field_search_accepted) && $params['search']['query'] != "") {
+                $this->db->like($params['search']['field'], $params['search']['query']); 
+            }
+
+            $this->db->order_by('id', 'DESC');
+            if ($params['pagination']['limit'] != "" && $params['pagination']['start'] >= 0) {
+                $this->db->limit($params['pagination']['limit'], $params['pagination']['start']);
+            }
+
+            $query = $this->db->get();
+            $result = $query->result_array();
+        }
         return $result; 
     }
 
@@ -84,6 +118,23 @@ class Staffs_model extends MY_Model
         }
         return $result;
     }
+
+    public function save_item($params = null, $option = null)
+    {
+        
+        switch ($option['task']) {
+            case 'change-status':
+                $this->db->update($this->tb_main, ['status' => $params['status']], ["ids" => $params['id']]);
+                return ["status"  => "success", "message" => 'Updated successfully'];
+                break;
+
+            
+        }
+    }
+
+
+   
+
 
 
 
