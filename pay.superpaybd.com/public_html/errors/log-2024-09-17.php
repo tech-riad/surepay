@@ -1,0 +1,39 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+
+ERROR - 2024-09-17 13:29:54 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 13:29:55 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 13:30:04 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 13:30:10 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 13:30:12 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 13:30:12 --> Severity: Warning --> Undefined array key "acc_tp" /home/superpay/pay.superpaybd.com/app/controllers/Request.php 159
+ERROR - 2024-09-17 13:30:13 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 13:30:16 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:15:51 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:15:52 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:15:59 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:15:59 --> Severity: Warning --> Undefined array key "acc_tp" /home/superpay/pay.superpaybd.com/app/controllers/Request.php 159
+ERROR - 2024-09-17 23:15:59 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:16:02 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:16:04 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:16:04 --> Severity: Warning --> Undefined array key "acc_tp" /home/superpay/pay.superpaybd.com/app/controllers/Request.php 159
+ERROR - 2024-09-17 23:16:04 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:16:06 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:16:07 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:09 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:16 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:20 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:20 --> Severity: Warning --> Undefined array key "acc_tp" /home/superpay/pay.superpaybd.com/app/controllers/Request.php 159
+ERROR - 2024-09-17 23:18:20 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:23 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:24 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:24 --> Severity: Warning --> Undefined array key "acc_tp" /home/superpay/pay.superpaybd.com/app/controllers/Request.php 159
+ERROR - 2024-09-17 23:18:26 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:29 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:30 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:30 --> Severity: Warning --> Undefined array key "acc_tp" /home/superpay/pay.superpaybd.com/app/controllers/Request.php 159
+ERROR - 2024-09-17 23:18:31 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:35 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:38 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:39 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11
+ERROR - 2024-09-17 23:18:39 --> Severity: error --> Exception: Cannot access offset of type string on string /home/superpay/pay.superpaybd.com/app/controllers/Request.php 224
+ERROR - 2024-09-17 23:18:48 --> Severity: Warning --> Constant BASE_SITE already defined /home/superpay/pay.superpaybd.com/app/controllers/Request.php 11

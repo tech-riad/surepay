@@ -1,0 +1,30 @@
+pre.prettyprint {
+    font-size: 14px !important;
+}
+pre.prettyprint .str {
+    color: #080 !important;
+}
+pre.prettyprint .com {
+    color: #800 !important;
+}
+pre.prettyprint .typ {
+    color: #606 !important;
+}
+pre.prettyprint .kwd {
+    color: #008 !important;
+}
+pre.prettyprint .clo, pre.prettyprint .opn, pre.prettyprint .pun {
+    color: #660 !important;
+}
+pre.prettyprint .lit {
+    color: #066 !important;
+}
+pre.prettyprint .tag {
+    color: #008 !important;
+}
+pre.prettyprint .atn {
+    color: #606 !important;
+}
+pre.prettyprint .atv {
+    color: #080 !important;
+}
