@@ -124,9 +124,12 @@ class Staffs_model extends MY_Model
         
         switch ($option['task']) {
             case 'change-status':
-                $this->db->update($this->tb_main, ['status' => $params['status']], ["ids" => $params['id']]);
-                return ["status"  => "success", "message" => 'Updated successfully'];
-                break;
+                $this->db->update($this->tb_main, ['status' => $params['status']], ["id" => $params['id']]);
+                if ($this->db->affected_rows() > 0) {
+                    return ["status"  => "success", "message" => 'Updated successfully'];
+                } else {
+                    return ["status"  => "error", "message" => 'Update failed'];
+                }
 
             
         }
