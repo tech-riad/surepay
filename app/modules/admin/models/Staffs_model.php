@@ -26,7 +26,7 @@ class Staffs_model extends MY_Model
         $result = null;
        
         if ($option['task'] == 'list-items') {
-            $this->db->select('id,first_name, last_name, email,timezone');
+            $this->db->select('id,first_name, last_name, email,timezone,status');
             $this->db->from($this->tb_main);
 
             // filter
