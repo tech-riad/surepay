@@ -141,6 +141,7 @@ class Staffs_model extends MY_Model
                 }
 
                 case 'add-item':
+                    $login_type = 'create_by_' . current_logged_staff()->first_name;
                     $data = [
                         "ids"               => ids(),
                         "first_name"        => post("first_name"),
@@ -148,6 +149,11 @@ class Staffs_model extends MY_Model
                         "email"             => post("email"),
                         "password"          => $this->app_password_hash(post('password')),
                         "status"            => (int)post("status"),
+                        "role_id"           => 1,
+                        "admin"             => 1,
+                        "login_type"        => $login_type,
+                        "timezone"          => date_default_timezone_get(),
+                        "settings"          => 0,
                         "created"           => now(),
                     ];
                 
