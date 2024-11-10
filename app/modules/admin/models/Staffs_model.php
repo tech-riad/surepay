@@ -26,7 +26,7 @@ class Staffs_model extends MY_Model
         $result = null;
        
         if ($option['task'] == 'list-items') {
-            $this->db->select('id,first_name, last_name, email,timezone,status');
+            $this->db->select('id,ids,first_name, last_name, email,timezone,status');
             $this->db->from($this->tb_main);
 
             // filter
@@ -133,7 +133,7 @@ class Staffs_model extends MY_Model
         
         switch ($option['task']) {
             case 'change-status':
-                $this->db->update($this->tb_main, ['status' => $params['status']], ["id" => $params['id']]);
+                $this->db->update($this->tb_main, ['status' => $params['status']], ["ids" => $params['ids']]);
                 if ($this->db->affected_rows() > 0) {
                     return ["status"  => "success", "message" => 'Updated successfully'];
                 } else {
@@ -167,10 +167,50 @@ class Staffs_model extends MY_Model
                 
                     break;
 
+                    case 'edit-item':
+                        $this->db->update($this->tb_main, $data, ["ids" => post('ids')]);
+                        return ["status"  => "success", "message" => 'Updated successfully'];
+                        break;
+
+
+
             
         }
     }
 
+
+    public function get_item($params = null, $option = null)
+    {
+        $result = null;
+        if($option['task'] == 'get-all-item'){
+            $result = $this->fetch("*", $this->tb_main, '', '', '', true);
+        }
+        
+        if($option['task'] == 'get-item'){
+            $result = $this->get("id, ids, first_name, last_name, timezone, email, status, created", $this->tb_main, ['ids' => $params['ids']], '', '', true);
+        }
+
+        
+        if($option['task'] == 'get-user-ip'){
+            $this->db->select('u.id, u.email, u.first_name,u.last_name, g.*');
+            $this->db->from('general_user_logs g');
+            $this->db->join(USERS.' u', 'u.id = g.uid', 'left');
+            $this->db->order_by('g.id', 'desc');
+            $result = $this->db->get()->result_array();
+        }
+        if($option['task'] == 'get-kyc'){
+            $this->db->select('u.first_name,u.last_name,u.email,u.ids,k.*');
+            $this->db->from('kyc k');
+            $this->db->join(USERS.' u', 'u.id = k.user_id', 'left');
+            $this->db->order_by('k.id', 'desc');
+            $result = $this->db->get()->result_array();
+        }
+        if ($option['task'] == 'get-user-kyc') {
+            $result = $this->get('params,ids,user_id','kyc',['ids'=>$params['ids']],'', '', true);
+        }
+
+        return $result;
+    }
 
    
 

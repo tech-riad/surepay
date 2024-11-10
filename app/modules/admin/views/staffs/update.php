@@ -47,7 +47,10 @@
   } else {
     $ids = null;
     $modal_title = 'Add Staff';
+    
   }
+
+  
 
 
   $form_url = admin_url($controller_name."/store/");
@@ -62,6 +65,7 @@
         <?php echo form_open($form_url, $form_attributes, $form_hidden); ?>
         <div class="modal-body">
           <div class="row">
+            
             <?php echo render_elements_form($elements); ?>
           </div>
         </div>
