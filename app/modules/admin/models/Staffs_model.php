@@ -141,29 +141,25 @@ class Staffs_model extends MY_Model
                 }
 
                 case 'add-item':
-                    $data['ids']         = ids();
-                    $data['password']    = $this->app_password_hash(post('password'));
-                    $data['login_type']  = 'create_by_'. current_logged_staff()->first_name;
-                    $data['ref_key']     = create_random_string_key(5);
-    
-                    $more_information = [
-                        'business_name' => '',
-                        'business_email' => '',
-                        'business_logo' => '',
-                        'website' => '',
+                    $data = [
+                        "ids"               => ids(),
+                        "first_name"        => post("first_name"),
+                        "last_name"         => post("last_name"),
+                        "email"             => post("email"),
+                        "password"          => $this->app_password_hash(post('password')),
+                        "status"            => (int)post("status"),
+                        "created"           => now(),
                     ];
-                    $data['more_information'] = json_encode($more_information);
-                    
-                    $api_credentials = [
-                        'apikey' => create_random_string_key(13),
-                        'secretkey' => create_random_string_key(8,'number'),
-                    ];
-                    $data['api_credentials'] = json_encode($api_credentials);
-    
+                
                     $this->db->insert($this->tb_main, $data);
-                    return ["status"  => "success", "message" => 'Added successfully'];
+                
+                    if ($this->db->affected_rows() > 0) {
+                        return ["status" => "success", "message" => 'Added successfully'];
+                    } else {
+                        return ["status" => "error", "message" => 'Failed to add record.'];
+                    }
+                
                     break;
-    
 
             
         }
