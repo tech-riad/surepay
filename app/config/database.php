@@ -8,6 +8,7 @@ $active_group = 'default';
 $query_builder = TRUE;
 
 $db['default'] = array(
+	'db_debug' => TRUE,
 	'dsn'	=> '',
 	'hostname' => 'localhost',        
 	'username' => 'root',             
