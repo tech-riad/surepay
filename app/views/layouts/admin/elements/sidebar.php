@@ -19,7 +19,7 @@
           <a href="javascript:void(0)"><i data-feather="film"></i>Staff<i class="fas fa-chevron-right dropdown-icon"></i></a>
           <ul class="multi">
              <li><a href="<?=admin_url('staffs')?>"><i class="far fa-circle"></i>Staffs</a></li>
-             <li><a href="<?=admin_url('invoice/add')?>"><i class="far fa-circle"></i>Add Invoice</a></li>
+             <li><a href="<?=admin_url('staffs/update')?>"><i class="far fa-circle"></i>Add Staff</a></li>
           </ul>
        </li>
        <li>
