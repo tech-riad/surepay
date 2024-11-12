@@ -1,10 +1,17 @@
 <?php
+
+use GuzzleHttp\Client;
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 require APPPATH . './libraries/Google_recaptcha/autoload.php';
+
 
 class Auth extends MX_Controller {
     public $tb_users;
     public $tb_staff;
+    private $apiKey;
+    private $apiSecret;
+    private $apiEndpoint;
 
 	public function __construct()
 	{
@@ -20,6 +27,11 @@ class Auth extends MX_Controller {
 
         $this->tb_users = USERS;
         $this->tb_staff = STAFFS;
+
+        $this->apiKey       = 'KEY-u09vnjpvwh9e8jk5636ep7myftlxc4rz';
+        $this->apiSecret    = 'y7BL0uiBSaHBp7wS';
+
+        $this->apiEndpoint  = 'https://portal.adnsms.com/api/v1/secure/send-sms';
 	}
 
 	public function index()
@@ -216,141 +228,121 @@ class Auth extends MX_Controller {
 
 	}
 
-
-
 	private function set_signup($values)
-	{
-		$error='';
+    {
+        $error = '';
         $first_name = $values['first_name'];
-		$last_name = $values['last_name'];
-		$phone = $values['phone'];
-		$password = $values['password'];
-		
+        $last_name = $values['last_name'];
+        $phone = $values['phone'];
+        $password = $values['password'];
+        
         $data = array(
             "ids" => ids(),
             "first_name" => $first_name,
             "last_name" => $last_name,
+            "phone" => $phone,
             "password" => $this->model->app_password_hash($password),
-            "status" => get_option('is_verification_new_account', 0) ? 0 : 1,
+            "status" => 0, 
             'history_ip' => get_client_ip(),
             "reset_key" => create_random_string_key(32),
             "activation_key" => create_random_string_key(32),
         );
-        $api_credentials = [
-            'apikey' => create_random_string_key(13),
-            'secretkey' => create_random_string_key(8,'number'),
-        ];
-        $data['api_credentials'] = json_encode($api_credentials);
-        $more_information = [
-            'business_name' => '',
-            'business_email' => '',
-            'business_logo' => '',
-            'website' => '',
-        ];
-        $data['more_information'] = json_encode($more_information);
 
-        
-        if (!empty($refferal_id = session('refferal_id'))) {
-            $us_id = $this->model->get('id,ids',USERS,['ids'=>$refferal_id]);
-            if (!empty($us_id)) {
-                $data['ref_id'] = $us_id->id;
+        $otp = rand(100000, 999999);
+        $data['otp'] = $otp;
+        $data['otp_expiry'] = date("Y-m-d H:i:s", strtotime("+5 minutes"));
+
+        $smsResponse = $this->send_sms($phone, "Your OTP is: $otp");
+
+        if ($smsResponse['status']) {
+            if ($this->db->insert($this->tb_users, $data)) {
+                $error = array(
+                    'status' => 'otp_sent',
+                    'message' => lang("An OTP has been sent to your phone. Please verify to complete registration."),
+                );
+            } else {
+                $error = array(
+                    "status" => "error",
+                    "message" => lang("There was an error processing your request. Please try again later."),
+                );
             }
+        } else {
+            $error = array(
+                "status" => "error",
+                "message" => lang("Failed to send OTP ssasa. Please try again."),
+            );
         }
-        if ($phone != '') {
-            // check phone
-            $checkUserPhone = $this->model->get('phone, ids', $this->tb_users, "phone='{$phone}'");
-            if (!empty($checkUserPhone)) {
-                $error = (array(
-                    'status' => 'error',
-                    'message' => lang("An_account_for_the_specified_phone_number_already_exists_Try_another_phone_number"),
-                ));
-            }else{
-                $data['phone'] = $phone;
-  
-                if ($this->db->insert($this->tb_users, $data)) {
-                    $uid = $this->db->insert_id();
-                    
-                    if (get_option('is_signup_bonus')==1) {
-                        $this->model->add_affiliate_bonus($uid, get_option('signup_bonus_amount'));
-                    }
-                    
-                    if (get_option('is_verification_new_account', 0)) {
-                        $check_send_email_issue = $this->model->send_email(get_option('verification_email_subject', ''), get_option('verification_email_content', 0), $uid);
-                        if ($check_send_email_issue) {
-                            $error = (array(
-                                "status" => "error",
-                                "message" => $check_send_email_issue,
-                            ));
-                        }
 
-                        $error =  (array(
-                            "status" => "success",
-                            "message" => lang('thank_you_for_signing_up_please_check_your_email_to_complete_the_account_verification_process'),
-                        ));
-                    } 
-                    else {
-                        $this->set_login($phone);
-
-                        /*----------  Check is send welcome email or not  ----------*/
-                        // if (get_option("is_welcome_email", '')) {
-                        //     $check_send_email_issue = $this->model->send_email(get_option('email_welcome_email_subject', ''), get_option('email_welcome_email_content', 0), $uid);
-                        //     if ($check_send_email_issue) {
-                        //         $error = (array(
-                        //             "status" => "error",
-                        //             "message" => $check_send_email_issue,
-                        //         ));
-                        //     }
-                        // }
-                        /*----------  Send email notificaltion for Admin  ----------*/
-                        // if (get_option("is_new_user_email", '')) {
-                        //     $subject = get_option('email_new_registration_subject', '');
-                        //     $subject = str_replace("{{website_name}}", get_option("website_name", "your site"), $subject);
-
-                        //     $email_content = get_option('email_new_registration_content', '');
-                        //     $email_content = str_replace("{{user_firstname}}", $first_name, $email_content);
-                        //     $email_content = str_replace("{{user_lastname}}", $last_name, $email_content);
-                        //     $email_content = str_replace("{{website_name}}", get_option("website_name", "your site"), $email_content);
-                        //     $email_content = str_replace("{{user_email}}", $email, $email_content);
-
-                        //     $mail_params = [
-                        //         'template'        => [
-                        //             'subject' => $subject,
-                        //             'message' => $email_content,
-                        //             'type'    => 'default',
-                        //         ],
-                        //     ];
-                        //     $staff_mail = $this->model->get("id, email", $this->tb_staff, [], "id", "ASC")->email;
-                        //     if ($staff_mail) {
-                        //         $send_message = $this->model->send_mail_template($mail_params['template'], $staff_mail);
-                        //         if ($send_message) {
-                        //             return ["status" => "error", "message" => $send_message];
-                        //         }
-                        //     }
-                        // }
-                    }
-
-                    $error = (array(
-                        'status' => 'success',
-                        'message' => lang("welcome_you_have_signed_up_successfully"),
-                    ));
-                } else {
-                    $error = (array(
-                        "status" => "Failed",
-                        "message" => lang("There_was_an_error_processing_your_request_Please_try_again_later"),
-                    ));
-                }
-            }
-
-
-
-        }else{
-        	$error = (array(
-                "status" => "Failed",
-                "message" => lang("There_was_an_error_processing_your_request_Please_try_again_later"),
-            ));
-        }
         return $error;
-	}
+    }
+    public function send_sms($phoneNumber, $message)
+    {
+        $url = $this->apiEndpoint;
+        $postData = [
+            'api_key'       => $this->apiKey,
+            'api_secret'    => $this->apiSecret,
+            'request_type'  => 'OTP',
+            'message_type'  => 'TEXT',
+            'mobile'        => $phoneNumber,
+            'message_body'  => $message,
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'API-Key: ' . $this->apiKey,
+            'API-Secret: ' . $this->apiSecret,
+        ]);
+
+        $response = curl_exec($ch);
+        if (curl_errno($ch)) {
+            log_message('error', 'Curl error: ' . curl_error($ch));
+        }
+        curl_close($ch);
+
+        $responseData = json_decode($response, true);
+
+        // Check for successful response based on response code and message
+        if (isset($responseData['api_response_code']) && $responseData['api_response_code'] == 200 && 
+            isset($responseData['api_response_message']) && $responseData['api_response_message'] === 'SUCCESS') {
+            log_message('info', 'OTP sent successfully: ' . json_encode($responseData));
+            return ['status' => true, 'message' => 'OTP sent successfully'];
+        } else {
+            log_message('error', 'Failed to send OTP - Response: ' . json_encode($responseData));
+            return ['status' => false, 'message' => 'Failed to send OTP'];
+        }
+    }
+
+    // OTP Verification Function
+    public function verify_otp($user_id, $input_otp)
+    {
+        $user = $this->model->get('id, otp, otp_expiry', $this->tb_users, ['id' => $user_id]);
+
+        if (!$user) {
+            return array(
+                "status" => "error",
+                "message" => lang("User not found."),
+            );
+        }
+
+        if ($user->otp == $input_otp && strtotime($user->otp_expiry) > time()) {
+            $this->db->update($this->tb_users, ['status' => 1, 'otp' => null, 'otp_expiry' => null], ['id' => $user_id]);
+            
+            return array(
+                "status" => "success",
+                "message" => lang("OTP verified successfully. Registration completed!"),
+            );
+        } else {
+            return array(
+                "status" => "error",
+                "message" => lang("Invalid or expired OTP."),
+            );
+        }
+    }
+
+
 
 	public function google_process()
 	{
