@@ -157,10 +157,10 @@ class Auth extends MX_Controller {
 
         $first_name = post('first_name');
         $last_name = post('last_name');
-        $email = post('email');
+        $phone = post('phone');
         $password = post('password');
         $re_password = post('re_password');
-        if ($first_name == '' || $last_name == '' || $password == '' || $email == '') {
+        if ($first_name == '' || $last_name == '' || $password == '' || $phone == '') {
             ms(array(
                 'status' => 'error',
                 'message' => lang("please_fill_in_the_required_fields"),
@@ -181,13 +181,14 @@ class Auth extends MX_Controller {
             ));
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (!preg_match('/^[0-9]{11}$/', $phone)) {
             ms(array(
                 'status' => 'error',
-                'message' => lang("invalid_email_format"),
+                'message' => lang("invalid_phone_number_format"),
             ));
         }
-
+        
+    
         if ($password != '') {
             if (strlen($password) < 6) {
                 ms(array(
@@ -206,7 +207,7 @@ class Auth extends MX_Controller {
         $data = array(
             'first_name' => $first_name,
 			'last_name' => $last_name,
-			'email' => $email,
+			'phone' => $phone,
 			'password' => $password,
 		);
 
@@ -225,7 +226,7 @@ class Auth extends MX_Controller {
 		$error='';
         $first_name = $values['first_name'];
 		$last_name = $values['last_name'];
-		$email = $values['email'];
+		$phone = $values['phone'];
 		$password = $values['password'];
 		
         $data = array(
@@ -258,13 +259,13 @@ class Auth extends MX_Controller {
                 $data['ref_id'] = $us_id->id;
             }
         }
-        if ($email != '') {
-            // check email
-            $checkUserEmail = $this->model->get('email, ids', $this->tb_users, "email='{$email}'");
-            if (!empty($checkUserEmail)) {
+        if ($phone != '') {
+            // check phone
+            $checkUserPhone = $this->model->get('phone, ids', $this->tb_users, "phone='{$phone}'");
+            if (!empty($checkUserPhone)) {
                 $error = (array(
                     'status' => 'error',
-                    'message' => lang("An_account_for_the_specified_email_address_already_exists_Try_another_email_address"),
+                    'message' => lang("An_account_for_the_specified_phone_number_already_exists_Try_another_phone_number"),
                 ));
             }else{
                 $data['email'] = $email;

@@ -31,10 +31,16 @@
                                  </div>
                               </div>
                               <div class="col-lg-6">
+                                 <div class="form-group ">
+                                    <input type="phone" class="form-control" placeholder="Phone" name="phone">
+                                 </div>
+                              </div>
+                              <!-- <div class="col-lg-6">
                                  <div class="form-group">
                                     <input type="email" class="form-control" placeholder="Email" name="email">
                                  </div>
-                              </div>
+                              </div> -->
+                              
                               <div class="col-lg-6">
                                  <div class="form-group">
                                     <input type="password" class="form-control" placeholder="Create a password" name="password">
@@ -50,7 +56,7 @@
                               </div>
                            </div>
                         <?=form_close();?>
-                        <div class="bottom">
+                        <!-- <div class="bottom">
                            <p>Already Signed Up? <a href="<?=cn('signin')?>">Sign In</a></p>
                            <h4>OR</h4>
                            <ul>
@@ -62,7 +68,7 @@
                                  </a>
                               </li>
                            </ul>
-                        </div>
+                        </div> -->
                      </div>
                   </div>
                </div>
