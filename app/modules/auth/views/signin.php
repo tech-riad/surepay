@@ -36,7 +36,7 @@
                            <div class="row">
                               <div class="col-lg-12">
                                  <div class="form-group">
-                                    <input type="email" name="email" class="form-control" placeholder="Enter your email" required value="<?=$cookie_email?>">
+                                    <input type="number" name="phone" class="form-control" placeholder="Enter your phone" required value="<?=$cookie_phone?>">
                                  </div>
                               </div>
                               <div class="col-lg-12">
@@ -46,7 +46,7 @@
                               </div>
                               <div class="col-lg-12">
                                  <div class="form-check text-start">
-                                   <input class="form-check-input" name="remember" type="checkbox" id="flexCheckChecked" <?=(isset($cookie_email) && $cookie_email != "") ? "checked" : ""?> >
+                                   <input class="form-check-input" name="remember" type="checkbox" id="flexCheckChecked" <?=(isset($cookie_phone) && $cookie_phone != "") ? "checked" : ""?> >
                                    <label class="form-check-label" for="flexCheckChecked">
                                      Remember me
                                    </label>

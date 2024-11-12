@@ -36,11 +36,11 @@ class Auth extends MX_Controller {
 	public function signin_process()
 	{
 		_is_ajax(get_class($this));
-        $email = post("email");
+        $phone = post("phone");
         $password = md5(post("password"));
         
 
-        if ($email == "") {
+        if ($phone == "") {
             ms(array(
                 "status" => "error",
                 "message" => lang("email_is_required"),
@@ -65,19 +65,16 @@ class Auth extends MX_Controller {
             }
         }
 
-        $user = $this->model->get("id, status, ids, email, password", $this->tb_users, ['email' => $email]);
+        $user = $this->model->get("id, status, ids, phone, password", $this->tb_users, ['phone' => $phone]);
 
         $error = false;
         if (!$user) {
             $error = true;
         } else {
-            // check the first with old hash password method
             if ($user->password == md5(post("password"))) {
-                // update new password_hash
                 $this->db->update($this->tb_users, ['password' => $this->model->app_password_hash(post("password"))], ['id' => $user->id]);
                 $error = false;
             } else {
-                // check the last hash password
                 if ($this->model->app_password_verify(post("password"), $user->password)) {
                     $error = false;
                 } else {
@@ -93,7 +90,7 @@ class Auth extends MX_Controller {
                     "message" => lang("your_account_has_not_been_activated"),
                 ));
             }
-            $this->set_login($email);
+            $this->set_login($phone);
             ms(array(
                 "status" => "success",
                 "message" => lang("Login_successfully"),
@@ -105,14 +102,14 @@ class Auth extends MX_Controller {
             ));
         }
 	}
-	private function set_login($email)
+	private function set_login($phone)
 	{
-        $user = $this->model->get("id, status, ids, email, password, last_name,first_name", $this->tb_users, ['email' => $email]);
+        $user = $this->model->get("id, status, ids, email, password, last_name,first_name", $this->tb_users, ['phone' => $phone]);
 
 		set_session("uid", $user->id);
         $data_session = array(
             'id'   => $user->id,
-            'email' => $user->email,
+            'phone' => $user->phone,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
         );
@@ -268,7 +265,7 @@ class Auth extends MX_Controller {
                     'message' => lang("An_account_for_the_specified_phone_number_already_exists_Try_another_phone_number"),
                 ));
             }else{
-                $data['email'] = $email;
+                $data['phone'] = $phone;
   
                 if ($this->db->insert($this->tb_users, $data)) {
                     $uid = $this->db->insert_id();
@@ -290,45 +287,46 @@ class Auth extends MX_Controller {
                             "status" => "success",
                             "message" => lang('thank_you_for_signing_up_please_check_your_email_to_complete_the_account_verification_process'),
                         ));
-                    } else {
-                        $this->set_login($email);
+                    } 
+                    else {
+                        $this->set_login($phone);
 
                         /*----------  Check is send welcome email or not  ----------*/
-                        if (get_option("is_welcome_email", '')) {
-                            $check_send_email_issue = $this->model->send_email(get_option('email_welcome_email_subject', ''), get_option('email_welcome_email_content', 0), $uid);
-                            if ($check_send_email_issue) {
-                                $error = (array(
-                                    "status" => "error",
-                                    "message" => $check_send_email_issue,
-                                ));
-                            }
-                        }
+                        // if (get_option("is_welcome_email", '')) {
+                        //     $check_send_email_issue = $this->model->send_email(get_option('email_welcome_email_subject', ''), get_option('email_welcome_email_content', 0), $uid);
+                        //     if ($check_send_email_issue) {
+                        //         $error = (array(
+                        //             "status" => "error",
+                        //             "message" => $check_send_email_issue,
+                        //         ));
+                        //     }
+                        // }
                         /*----------  Send email notificaltion for Admin  ----------*/
-                        if (get_option("is_new_user_email", '')) {
-                            $subject = get_option('email_new_registration_subject', '');
-                            $subject = str_replace("{{website_name}}", get_option("website_name", "your site"), $subject);
+                        // if (get_option("is_new_user_email", '')) {
+                        //     $subject = get_option('email_new_registration_subject', '');
+                        //     $subject = str_replace("{{website_name}}", get_option("website_name", "your site"), $subject);
 
-                            $email_content = get_option('email_new_registration_content', '');
-                            $email_content = str_replace("{{user_firstname}}", $first_name, $email_content);
-                            $email_content = str_replace("{{user_lastname}}", $last_name, $email_content);
-                            $email_content = str_replace("{{website_name}}", get_option("website_name", "your site"), $email_content);
-                            $email_content = str_replace("{{user_email}}", $email, $email_content);
+                        //     $email_content = get_option('email_new_registration_content', '');
+                        //     $email_content = str_replace("{{user_firstname}}", $first_name, $email_content);
+                        //     $email_content = str_replace("{{user_lastname}}", $last_name, $email_content);
+                        //     $email_content = str_replace("{{website_name}}", get_option("website_name", "your site"), $email_content);
+                        //     $email_content = str_replace("{{user_email}}", $email, $email_content);
 
-                            $mail_params = [
-                                'template'        => [
-                                    'subject' => $subject,
-                                    'message' => $email_content,
-                                    'type'    => 'default',
-                                ],
-                            ];
-                            $staff_mail = $this->model->get("id, email", $this->tb_staff, [], "id", "ASC")->email;
-                            if ($staff_mail) {
-                                $send_message = $this->model->send_mail_template($mail_params['template'], $staff_mail);
-                                if ($send_message) {
-                                    return ["status" => "error", "message" => $send_message];
-                                }
-                            }
-                        }
+                        //     $mail_params = [
+                        //         'template'        => [
+                        //             'subject' => $subject,
+                        //             'message' => $email_content,
+                        //             'type'    => 'default',
+                        //         ],
+                        //     ];
+                        //     $staff_mail = $this->model->get("id, email", $this->tb_staff, [], "id", "ASC")->email;
+                        //     if ($staff_mail) {
+                        //         $send_message = $this->model->send_mail_template($mail_params['template'], $staff_mail);
+                        //         if ($send_message) {
+                        //             return ["status" => "error", "message" => $send_message];
+                        //         }
+                        //     }
+                        // }
                     }
 
                     $error = (array(
