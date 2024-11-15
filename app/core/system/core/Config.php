@@ -104,7 +104,7 @@ class CI_Config {
 			}
 			else
 			{
-				$base_url = 'https://localhost:4433/surjopay/';
+				$base_url = 'https://localhost/surjopay/';
 			}
 
 			$this->set_item('base_url', $base_url);

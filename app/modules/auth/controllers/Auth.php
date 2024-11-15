@@ -150,6 +150,8 @@ class Auth extends MX_Controller {
         $this->template->set_layout('auth');
         $this->template->build('signup', $data);
 	}
+    
+
 
 	public function signup_process()
 	{
@@ -228,6 +230,12 @@ class Auth extends MX_Controller {
 
 	}
 
+    public function verify()
+    {
+        $data = array();
+        $this->template->set_layout('auth');
+        $this->template->build('verify', $data);
+    }
 	private function set_signup($values)
     {
         $error = '';
@@ -256,10 +264,8 @@ class Auth extends MX_Controller {
 
         if ($smsResponse['status']) {
             if ($this->db->insert($this->tb_users, $data)) {
-                $error = array(
-                    'status' => 'otp_sent',
-                    'message' => lang("An OTP has been sent to your phone. Please verify to complete registration."),
-                );
+                
+                redirect(cn('signin'));
             } else {
                 $error = array(
                     "status" => "error",
