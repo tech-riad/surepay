@@ -254,18 +254,84 @@ class Auth extends MX_Controller {
             "otp" => $otp,
             "otp_expiry" => date("Y-m-d H:i:s", strtotime("+5 minutes")),
             "history_ip" => get_client_ip(),
+            "api_credentials" => json_encode([
+                'apikey' => create_random_string_key(13),
+                'secretkey' => create_random_string_key(8, 'number'),
+            ]),
+            "more_information" => json_encode([
+                'business_name' => '',
+                'business_email' => '',
+                'business_logo' => '',
+                'website' => '',
+            ]),
         ];
 
-        $smsResponse = $this->send_sms($values['phone'], "Your OTP is: $otp");
-        if ($smsResponse['status']) {
+        if (!empty($refferal_id = session('refferal_id'))) {
+            $us_id = $this->model->get('id,ids', USERS, ['ids' => $refferal_id]);
+            if (!empty($us_id)) {
+                $data['ref_id'] = $us_id->id;
+            }
+        }
+
+        if ($data['phone'] != '') {
+            $checkUserPhone = $this->model->get('phone, ids', $this->tb_users, ["phone" => $data['phone']]);
+            if (!empty($checkUserPhone)) {
+                return [
+                    'status' => 'error',
+                    'message' => lang("An_account_for_the_specified_phone_already_exists_Try_another_phone")
+                ];
+            }
+
             if ($this->db->insert($this->tb_users, $data)) {
-                return ['status' => 'success', 'message' => lang("Signup successful, please verify your OTP")];
-                
+                $uid = $this->db->insert_id();
+
+                if (get_option('is_signup_bonus') == 1) {
+                    $this->model->add_affiliate_bonus($uid, get_option('signup_bonus_amount'));
+                }
+
+                $smsResponse = $this->send_sms($values['phone'], "Your OTP is: $otp");
+                if ($smsResponse['status']) {
+                    if (get_option("is_new_user_phone", '')) {
+                        $subject = get_option('phoen_new_registration_subject', '');
+                        $subject = str_replace("{{website_name}}", get_option("website_name", "your site"), $subject);
+
+                        $email_content = get_option('phone_new_registration_content', '');
+                        $email_content = str_replace("{{user_firstname}}", $data['first_name'], $email_content);
+                        $email_content = str_replace("{{user_lastname}}", $data['last_name'], $email_content);
+                        $email_content = str_replace("{{website_name}}", get_option("website_name", "your site"), $email_content);
+                        $email_content = str_replace("{{user_phone}}", $data['phone'], $email_content);
+
+                        $mail_params = [
+                            'template' => [
+                                'subject' => $subject,
+                                'message' => $email_content,
+                                'type' => 'default',
+                            ],
+                        ];
+                        $staff_mail = $this->model->get("id, email", $this->tb_staff, [], "id", "ASC")->email;
+                        if ($staff_mail) {
+                            $send_message = $this->model->send_mail_template($mail_params['template'], $staff_mail);
+                            if ($send_message) {
+                                return ["status" => "error", "message" => $send_message];
+                            }
+                        }
+                    }
+                    return ['status' => 'success', 'message' => lang("Signup successful, please verify your OTP")];
+                    
+                } else {
+                    return ['status' => 'error', 'message' => lang("Failed to send OTP, please try again")];
+                }
             } else {
-                return ['status' => 'error', 'message' => lang("Error processing signup, please try again later")];
+                return [
+                    'status' => 'error',
+                    'message' => lang("There_was_an_error_processing_your_request_Please_try_again_later")
+                ];
             }
         } else {
-            return ['status' => 'error', 'message' => lang("Failed to send OTP, please try again")];
+            return [
+                'status' => 'error',
+                'message' => lang("There_was_an_error_processing_your_request_Please_try_again_later")
+            ];
         }
     }
 
