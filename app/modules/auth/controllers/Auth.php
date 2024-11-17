@@ -115,10 +115,29 @@ class Auth extends MX_Controller {
         }
 	}
 	private function set_login($phone)
-	{
-        $user = $this->model->get("id, status, ids, email, password, last_name,first_name", $this->tb_users, ['phone' => $phone]);
+    {
+        // Ensure $phone is a string
+        if (is_array($phone)) {
+            $phone = implode('', $phone);  // Convert to string if it's an array
+        }
 
-		set_session("uid", $user->id);
+        // Check if phone is still a valid string
+        if (!is_string($phone)) {
+            log_message('error', 'Invalid phone format in set_login: ' . print_r($phone, true));
+            ms(array('status' => 'error', 'message' => lang("Invalid phone number.")));
+        }
+
+        // Get user data from the database
+        $user = $this->model->get("id, status, ids, email, password, last_name, first_name", $this->tb_users, ['phone' => $phone]);
+
+        // Check if user exists
+        if (!$user) {
+            log_message('error', 'User not found for phone: ' . $phone);
+            ms(array('status' => 'error', 'message' => lang("User not found.")));
+        }
+
+        // Set session data
+        set_session("uid", $user->id);
         $data_session = array(
             'id'   => $user->id,
             'phone' => $user->phone,
@@ -126,11 +145,12 @@ class Auth extends MX_Controller {
             'last_name' => $user->last_name,
         );
         set_session('user_current_info', $data_session);
-        set_cookie("sessionData", json_encode($data_session),1209600);
+        set_cookie("sessionData", json_encode($data_session), 1209600);
 
-
+        // Log user IP in history
         $this->model->history_ip($user->id);
-        
+
+        // Handle 'remember me' functionality
         $remember = post("remember");
         if (!empty($remember)) {
             set_cookie("c_cookie_email", encrypt_encode(post("email")), 1209600);
@@ -140,10 +160,13 @@ class Auth extends MX_Controller {
             delete_cookie("c_cookie_pass");
         }
 
-        // Update new Reset key
+        // Update reset key after login
         $this->db->update($this->tb_users, ['reset_key' => ids()], ['id' => $user->id]);
 
-	}
+        // Optionally redirect to dashboard or home
+        ms(array('status' => 'success', 'message' => lang("Login successful!"), 'redirect' => cn('dashboard')));
+    }
+
 	public function signup()
     {
         $data = array();
@@ -226,34 +249,60 @@ class Auth extends MX_Controller {
     public function verify_otp()
     {
         $phone = $this->session->userdata('phone');
-        $otp = post('otp'); 
-
-        if (!$phone) {
+    
+        if (!isset($phone) || empty($phone)) {
+            log_message('error', 'Phone number is not found in session or is empty.');
             ms(array('status' => 'error', 'message' => lang("Phone number not found in session.")));
         }
-
+    
+        log_message('error', 'Retrieved phone from session: ' . print_r($phone, true));
+    
+        if (is_array($phone)) {
+            log_message('error', 'Phone number is an array. This should be a string. Converting to string: ' . implode(', ', $phone));
+            $phone = implode('', $phone);  
+        }
+    
+        $otp = post('otp');
+        if (!$otp) {
+            log_message('error', 'OTP not provided in the request.');
+            ms(array('status' => 'error', 'message' => lang("OTP not provided.")));
+        }
+    
+        if (!is_string($phone)) {
+            log_message('error', 'Phone number is invalid or not a string.');
+            ms(array('status' => 'error', 'message' => lang("Phone number is invalid.")));
+        }
+    
         $user = $this->db->get_where($this->tb_users, ['phone' => $phone])->row();
-
+    
         if (!$user) {
+            log_message('error', 'User not found for phone: ' . $phone);
             ms(array('status' => 'error', 'message' => lang("User not found.")));
         }
-
+    
         if ($user->otp == $otp && strtotime($user->otp_expiry) > time()) {
-            $this->db->update($this->tb_users, ['status' => 1,  'phone_varified_at' =>now()], ['id' => $user->id]);
-
+            $update_result = $this->db->update($this->tb_users, ['status' => 1,  'phone_varified_at' => now()], ['id' => $user->id]);
+    
+            if (!$update_result) {
+                log_message('error', 'Database update failed: ' . print_r($this->db->error(), true));
+            }
+    
             $this->session->set_userdata([
                 'user_id' => $user->id,
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'phone' => $user->phone,
             ]);
-
+    
+            $this->set_login(['phone' => $user->phone]);
+    
             ms(array('status' => 'success', 'message' => lang("OTP verified successfully!"), 'redirect' => cn('dashboard')));
         } else {
+            log_message('error', 'Invalid or expired OTP for phone: ' . $phone);
             ms(array('status' => 'error', 'message' => lang("Invalid or expired OTP.")));
         }
     }
-
+    
 
 
 

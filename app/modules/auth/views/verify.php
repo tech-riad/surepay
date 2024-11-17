@@ -18,7 +18,7 @@
                            </a>
                            <h2>Verify Otp</h2>
                         </div>
-                        <?=form_open('auth/verify_otp', 'class="actionForm" id="otpForm"'); ?>
+                        <?=form_open('auth/verify_otp', 'class="actionForm" id="otpForm" data-redirect= "/surepay/user/dashboard"'); ?>
                         <input type="hidden" name="phone" value="<?= $phone ?>">
                         <div class="row">
                             <div class="col-md-2"></div>
