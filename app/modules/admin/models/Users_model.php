@@ -251,10 +251,28 @@ class Users_model extends MY_Model
             
                 break;
             
-            case 'edit-item':
-                $this->db->update($this->tb_main, $data, ["ids" => post('ids')]);
-                return ["status"  => "success", "message" => 'Updated successfully'];
-                break;
+                case 'edit-item':
+                    $data = [
+                        "first_name"        => post("first_name"),
+                        "last_name"         => post("last_name"),
+                        "email"             => post("email"),
+                        "phone"             => post("phone"), 
+                        "status"            => (int)post("status"),
+                    ];
+                    
+                   
+                    $data = array_filter($data, function ($value) {
+                        return $value !== null;
+                    });
+            
+                    $this->db->update($this->tb_main, $data, ["ids" => post('ids')]);
+            
+                    if ($this->db->affected_rows() > 0) {
+                        return ["status" => "success", "message" => 'Updated successfully'];
+                    } else {
+                        return ["status" => "error", "message" => 'Failed to update record or no changes detected.'];
+                    }
+                    break;
 
             case 'edit-item-information':
                 $more_information = [

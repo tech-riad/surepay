@@ -54,7 +54,7 @@
                     <td>
                       <img src="<?=get_avatar('','merchant',$item['id'])?>" height="20px" class="float-start rounded-circle">
                       <div class="title"><?php echo $full_name; ?></div>
-                      <div class="sub text-muted"><?php echo '0'.$phone; ?></small></div>
+                      <div class="sub text-muted"><?php echo $phone; ?></small></div>
                       <div class="sub text-muted"><?php echo $email; ?></small></div>
                     </td>
                     <td class="text-center w-10p"><?php echo (double)$item['balance']; ?></td></td>
