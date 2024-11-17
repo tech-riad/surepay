@@ -23,6 +23,11 @@
       'class_main' => "col-md-12 col-sm-12 col-xs-12",
     ],
     [
+      'label'      => form_label('Phone'),
+      'element'    => form_input(['name' => 'phone', 'value' => @$item['phone'], 'type' => 'phone', 'class' => $class_element]),
+      'class_main' => "col-md-12 col-sm-12 col-xs-12",
+    ],
+    [
       'label'      => form_label('Password'),
       'element'    => form_input(['name' => 'password', 'value' => @$item['password'], 'type' => 'text', 'class' => $class_element]),
       'class_main' => "col-md-12 col-sm-12 col-xs-12",

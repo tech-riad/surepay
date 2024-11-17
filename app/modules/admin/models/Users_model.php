@@ -225,11 +225,16 @@ class Users_model extends MY_Model
                     'apikey' => create_random_string_key(13),
                     'secretkey' => create_random_string_key(8, 'number'),
                 ];
+                
                 $data = [
                     "ids"               => ids(),
                     "first_name"        => post("first_name"),
                     "last_name"         => post("last_name"),
                     "email"             => post("email"),
+                    "phone"             => post("phone"),
+                    "otp"               => rand(100000, 999999),
+                    "otp_expiry"        => date("Y-m-d H:i:s", strtotime("+5 minutes")),
+                    'phone_varified_at' => now(),
                     "password"          => $this->app_password_hash(post('password')),
                     "status"            => (int)post("status"),
                     "more_information"  => json_encode($more_information),
