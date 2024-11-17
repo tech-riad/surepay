@@ -18,7 +18,7 @@
                            </a>
                            <h2>Sign Up</h2>
                         </div>
-                        <?=form_open('auth/signup_process', 'class="actionForm" data-redirect= "user" ');?>
+                        <?=form_open('auth/signup_process', 'class="actionForm" data-redirect="/surepay/verify" ');?>
                            <div class="row">
                               <div class="col-lg-6">
                                  <div class="form-group">

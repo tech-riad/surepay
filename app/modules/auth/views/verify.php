@@ -18,22 +18,23 @@
                            </a>
                            <h2>Verify Otp</h2>
                         </div>
-                        <?=form_open('auth/verify_process', 'class="actionForm" data-redirect= "user" ');?>
-                           <div class="row">
-                              <div class="col-md-2"></div>
-                              <div class="col-lg-8">
-                                 <div class="form-group ">
-                                    <input type="otp" class="form-control" placeholder="Enter Your Otp" name="otp">
-                                 </div>
-                              </div>
-                              <div class="col-md-2"></div>
+                        <?=form_open('auth/verify_otp', 'class="actionForm" id="otpForm"'); ?>
+                        <input type="hidden" name="phone" value="<?= $phone ?>">
+                        <div class="row">
+                            <div class="col-md-2"></div>
+                            <div class="col-lg-8">
+                                <div class="form-group ">
+                                    <input type="text" class="form-control" placeholder="Enter Your OTP" name="otp">
+                                </div>
+                            </div>
+                            <div class="col-md-2"></div>
 
-                              
-                              <div class="col-lg-12">
-                                 <button type="submit" class="btn">Submit</button>
-                              </div>
-                           </div>
+                            <div class="col-lg-12">
+                                <button type="submit" class="btn">Submit</button>
+                            </div>
+                        </div>
                         <?=form_close();?>
+
                         
                      </div>
                   </div>
@@ -48,23 +49,24 @@
 
 <script>
     $(document).on('submit', '#otpForm', function (e) {
-        e.preventDefault();
-        $.ajax({
-            url: $(this).attr('action'),
-            method: 'POST',
-            data: $(this).serialize(),
-            success: function (response) {
-                const res = JSON.parse(response);
-                if (res.status === 'success') {
-                    alert(res.message);
-                    window.location.href = res.redirect; 
-                } else {
-                    alert(res.message);
-                }
-            },
-            error: function (xhr) {
-                console.error('Request failed', xhr);
-            },
-        });
+    e.preventDefault();
+    $.ajax({
+        url: $(this).attr('action'),
+        method: 'POST',
+        data: $(this).serialize(),
+        success: function (response) {
+            const res = JSON.parse(response);
+            if (res.status === 'success') {
+                alert(res.message);
+                window.location.href = res.redirect;  
+            } else {
+                alert(res.message);
+            }
+        },
+        error: function (xhr) {
+            console.error('Request failed', xhr);
+        },
     });
+});
+
 </script>

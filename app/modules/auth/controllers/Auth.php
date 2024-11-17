@@ -153,13 +153,7 @@ class Auth extends MX_Controller {
 
     public function signup_process()
     {
-        if (isset($_POST['g-recaptcha-response']) && get_option("enable_google_recaptcha", '') && get_option('google_recaptcha_site_key') && get_option('google_recaptcha_secret_key')) {
-            $resp = $this->recaptcha->setExpectedHostname($_SERVER['SERVER_NAME'])
-                ->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
-            if (!$resp->isSuccess()) {
-                ms(array('status' => 'error', 'message' => "Please verify reCAPTCHA"));
-            }
-        }
+        // Your existing validation code
 
         $first_name = post('first_name');
         $last_name = post('last_name');
@@ -167,21 +161,7 @@ class Auth extends MX_Controller {
         $password = post('password');
         $re_password = post('re_password');
 
-        if (empty($first_name) || empty($last_name) || empty($phone) || empty($password)) {
-            ms(array('status' => 'error', 'message' => lang("please_fill_in_the_required_fields")));
-        }
-
-        if (!preg_match("/^[a-zA-Z ]*$/", $first_name) || !preg_match("/^[a-zA-Z ]*$/", $last_name)) {
-            ms(array('status' => 'error', 'message' => lang("only_letters_and_white_space_allowed")));
-        }
-
-        if (!preg_match('/^[0-9]{11}$/', $phone)) {
-            ms(array('status' => 'error', 'message' => lang("invalid_phone_number_format")));
-        }
-
-        if ($password !== $re_password) {
-            ms(array('status' => 'error', 'message' => lang("Password do not match")));
-        }
+        // Your existing validation code...
 
         $data = [
             'first_name' => $first_name,
@@ -192,12 +172,22 @@ class Auth extends MX_Controller {
 
         $res = $this->set_signup($data);
 
+        if ($res['status'] === 'success') {
+            // Set phone number in session after successful signup
+            $this->session->set_userdata([
+                'phone' => $phone, // Store the phone number in the session
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+            ]);
+        }
+
         ms(array(
             'status' => $res['status'],
             'message' => $res['message'],
             'redirect' => cn('auth/verify'),
         ));
     }
+
 
     private function set_signup($values)
     {
@@ -234,23 +224,44 @@ class Auth extends MX_Controller {
     }
 
     public function verify_otp()
-    {
-        $phone = post('phone');
-        $otp = post('otp');
+{
+    // Retrieve the phone number from session data instead of POST
+    $phone = $this->session->userdata('phone');
+    $otp = post('otp'); // OTP still comes from the user input
 
-        $user = $this->db->get_where($this->tb_users, ['phone' => $phone])->row();
-
-        if (!$user) {
-            ms(array('status' => 'error', 'message' => lang("User not found.")));
-        }
-
-        if ($user->otp == $otp && strtotime($user->otp_expiry) > time()) {
-            $this->db->update($this->tb_users, ['status' => 1, 'otp' => null, 'otp_expiry' => null], ['id' => $user->id]);
-            ms(array('status' => 'success', 'message' => lang("OTP verified successfully!"), 'redirect' => cn('auth/signin')));
-        } else {
-            ms(array('status' => 'error', 'message' => lang("Invalid or expired OTP.")));
-        }
+    // Ensure phone number is available
+    if (!$phone) {
+        ms(array('status' => 'error', 'message' => lang("Phone number not found in session.")));
     }
+
+    // Fetch user details using the phone number from session
+    $user = $this->db->get_where($this->tb_users, ['phone' => $phone])->row();
+
+    if (!$user) {
+        ms(array('status' => 'error', 'message' => lang("User not found.")));
+    }
+
+    // Verify the OTP
+    if ($user->otp == $otp && strtotime($user->otp_expiry) > time()) {
+        // Update user status after successful OTP verification
+        $this->db->update($this->tb_users, ['status' => 1, 'otp' => null, 'otp_expiry' => null], ['id' => $user->id]);
+
+        // Set user data in session
+        $this->session->set_userdata([
+            'user_id' => $user->id,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'phone' => $user->phone,
+        ]);
+
+        // Send success response with redirect
+        ms(array('status' => 'success', 'message' => lang("OTP verified successfully!"), 'redirect' => cn('dashboard')));
+    } else {
+        ms(array('status' => 'error', 'message' => lang("Invalid or expired OTP.")));
+    }
+}
+
+
 
 
     public function send_sms($phoneNumber, $message)
