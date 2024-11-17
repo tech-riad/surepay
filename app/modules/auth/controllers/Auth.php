@@ -224,42 +224,35 @@ class Auth extends MX_Controller {
     }
 
     public function verify_otp()
-{
-    // Retrieve the phone number from session data instead of POST
-    $phone = $this->session->userdata('phone');
-    $otp = post('otp'); // OTP still comes from the user input
+    {
+        $phone = $this->session->userdata('phone');
+        $otp = post('otp'); 
 
-    // Ensure phone number is available
-    if (!$phone) {
-        ms(array('status' => 'error', 'message' => lang("Phone number not found in session.")));
+        if (!$phone) {
+            ms(array('status' => 'error', 'message' => lang("Phone number not found in session.")));
+        }
+
+        $user = $this->db->get_where($this->tb_users, ['phone' => $phone])->row();
+
+        if (!$user) {
+            ms(array('status' => 'error', 'message' => lang("User not found.")));
+        }
+
+        if ($user->otp == $otp && strtotime($user->otp_expiry) > time()) {
+            $this->db->update($this->tb_users, ['status' => 1,  'phone_varified_at' =>now()], ['id' => $user->id]);
+
+            $this->session->set_userdata([
+                'user_id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'phone' => $user->phone,
+            ]);
+
+            ms(array('status' => 'success', 'message' => lang("OTP verified successfully!"), 'redirect' => cn('dashboard')));
+        } else {
+            ms(array('status' => 'error', 'message' => lang("Invalid or expired OTP.")));
+        }
     }
-
-    // Fetch user details using the phone number from session
-    $user = $this->db->get_where($this->tb_users, ['phone' => $phone])->row();
-
-    if (!$user) {
-        ms(array('status' => 'error', 'message' => lang("User not found.")));
-    }
-
-    // Verify the OTP
-    if ($user->otp == $otp && strtotime($user->otp_expiry) > time()) {
-        // Update user status after successful OTP verification
-        $this->db->update($this->tb_users, ['status' => 1, 'otp' => null, 'otp_expiry' => null], ['id' => $user->id]);
-
-        // Set user data in session
-        $this->session->set_userdata([
-            'user_id' => $user->id,
-            'first_name' => $user->first_name,
-            'last_name' => $user->last_name,
-            'phone' => $user->phone,
-        ]);
-
-        // Send success response with redirect
-        ms(array('status' => 'success', 'message' => lang("OTP verified successfully!"), 'redirect' => cn('dashboard')));
-    } else {
-        ms(array('status' => 'error', 'message' => lang("Invalid or expired OTP.")));
-    }
-}
 
 
 
