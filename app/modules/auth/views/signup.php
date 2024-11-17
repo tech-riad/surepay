@@ -77,3 +77,31 @@
       </div>
    </div>
 </div>
+
+<script>
+    $(document).on('submit', '.actionForm', function (e) {
+    e.preventDefault();
+    $.ajax({
+        url: $(this).attr('action'),
+        method: 'POST',
+        data: $(this).serialize(),
+        success: function (response) {
+            const res = JSON.parse(response);  
+            console.log('Response:', res);  
+
+            if (res.status === 'success') {
+                console.log('Redirecting to:', res.redirect);  // Log the redirect URL
+                window.location.href = "https://localhost:4433/surepay/auth/verify"; // Redirect the browser to the new URL
+            } else {
+                alert(res.message);  // Alert the error message if any
+            }
+        },
+        error: function (xhr) {
+            console.error('Request failed', xhr);  // Log any request errors
+        },
+    });
+});
+
+
+
+</script>

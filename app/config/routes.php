@@ -7,6 +7,7 @@ $route['translate_uri_dashes'] = FALSE;
 
 $route['signin'] = 'auth/signin';
 $route['signup'] = 'auth/signup';
+$route['signup_process'] = 'auth/signup_process';
 $route['verify'] = 'auth/verify';
 $route['invoice/(:any)'] = 'home/invoice/$1';
 

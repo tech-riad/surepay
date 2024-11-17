@@ -145,24 +145,19 @@ class Auth extends MX_Controller {
 
 	}
 	public function signup()
-	{
-		$data = array();
+    {
+        $data = array();
         $this->template->set_layout('auth');
         $this->template->build('signup', $data);
-	}
-    
+    }
 
-
-	public function signup_process()
-	{
-		if (isset($_POST['g-recaptcha-response']) && get_option("enable_goolge_recapcha", '') && get_option('google_capcha_site_key') != "" && get_option('google_capcha_secret_key') != "") {
+    public function signup_process()
+    {
+        if (isset($_POST['g-recaptcha-response']) && get_option("enable_google_recaptcha", '') && get_option('google_recaptcha_site_key') && get_option('google_recaptcha_secret_key')) {
             $resp = $this->recaptcha->setExpectedHostname($_SERVER['SERVER_NAME'])
                 ->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
             if (!$resp->isSuccess()) {
-                ms(array(
-                    'status' => 'error',
-                    'message' => "Please verify recaptcha",
-                ));
+                ms(array('status' => 'error', 'message' => "Please verify reCAPTCHA"));
             }
         }
 
@@ -171,126 +166,103 @@ class Auth extends MX_Controller {
         $phone = post('phone');
         $password = post('password');
         $re_password = post('re_password');
-        if ($first_name == '' || $last_name == '' || $password == '' || $phone == '') {
-            ms(array(
-                'status' => 'error',
-                'message' => lang("please_fill_in_the_required_fields"),
-            ));
+
+        if (empty($first_name) || empty($last_name) || empty($phone) || empty($password)) {
+            ms(array('status' => 'error', 'message' => lang("please_fill_in_the_required_fields")));
         }
 
-        if (!preg_match("/^[a-zA-Z ]*$/", $first_name)) {
-            ms(array(
-                'status' => 'error',
-                'message' => lang("only_letters_and_white_space_allowed"),
-            ));
-        }
-
-        if (!preg_match("/^[a-zA-Z ]*$/", $last_name)) {
-            ms(array(
-                'status' => 'error',
-                'message' => lang("only_letters_and_white_space_allowed"),
-            ));
+        if (!preg_match("/^[a-zA-Z ]*$/", $first_name) || !preg_match("/^[a-zA-Z ]*$/", $last_name)) {
+            ms(array('status' => 'error', 'message' => lang("only_letters_and_white_space_allowed")));
         }
 
         if (!preg_match('/^[0-9]{11}$/', $phone)) {
-            ms(array(
-                'status' => 'error',
-                'message' => lang("invalid_phone_number_format"),
-            ));
+            ms(array('status' => 'error', 'message' => lang("invalid_phone_number_format")));
         }
-        
-    
-        if ($password != '') {
-            if (strlen($password) < 6) {
-                ms(array(
-                    'status' => 'error',
-                    'message' => lang("Password_must_be_at_least_6_characters_long"),
-                ));
-            }
 
-            if ($re_password != $password) {
-                ms(array(
-                    'status' => 'error',
-                    'message' => lang("Password do not match"),
-                ));
-            }
+        if ($password !== $re_password) {
+            ms(array('status' => 'error', 'message' => lang("Password do not match")));
         }
-        $data = array(
+
+        $data = [
             'first_name' => $first_name,
-			'last_name' => $last_name,
-			'phone' => $phone,
-			'password' => $password,
-		);
+            'last_name' => $last_name,
+            'phone' => $phone,
+            'password' => $password,
+        ];
 
-		$res = $this->set_signup($data);
-		ms(array(
+        $res = $this->set_signup($data);
+
+        ms(array(
             'status' => $res['status'],
             'message' => $res['message'],
+            'redirect' => cn('auth/verify'),
         ));
+    }
 
-	}
+    private function set_signup($values)
+    {
+        $otp = rand(100000, 999999); 
+        $data = [
+            "ids" => ids(),
+            "first_name" => $values['first_name'],
+            "last_name" => $values['last_name'],
+            "phone" => $values['phone'],
+            "password" => $this->model->app_password_hash($values['password']),
+            "status" => 0, 
+            "otp" => $otp,
+            "otp_expiry" => date("Y-m-d H:i:s", strtotime("+5 minutes")),
+            "history_ip" => get_client_ip(),
+        ];
+
+        $smsResponse = $this->send_sms($values['phone'], "Your OTP is: $otp");
+        if ($smsResponse['status']) {
+            if ($this->db->insert($this->tb_users, $data)) {
+                return ['status' => 'success', 'message' => lang("Signup successful, please verify your OTP")];
+            } else {
+                return ['status' => 'error', 'message' => lang("Error processing signup, please try again later")];
+            }
+        } else {
+            return ['status' => 'error', 'message' => lang("Failed to send OTP, please try again")];
+        }
+    }
 
     public function verify()
     {
-        $data = array();
+        $data = [];
         $this->template->set_layout('auth');
         $this->template->build('verify', $data);
     }
-	private function set_signup($values)
+
+    public function verify_otp()
     {
-        $error = '';
-        $first_name = $values['first_name'];
-        $last_name = $values['last_name'];
-        $phone = $values['phone'];
-        $password = $values['password'];
-        
-        $data = array(
-            "ids" => ids(),
-            "first_name" => $first_name,
-            "last_name" => $last_name,
-            "phone" => $phone,
-            "password" => $this->model->app_password_hash($password),
-            "status" => 0, 
-            'history_ip' => get_client_ip(),
-            "reset_key" => create_random_string_key(32),
-            "activation_key" => create_random_string_key(32),
-        );
+        $phone = post('phone');
+        $otp = post('otp');
 
-        $otp = rand(100000, 999999);
-        $data['otp'] = $otp;
-        $data['otp_expiry'] = date("Y-m-d H:i:s", strtotime("+5 minutes"));
+        $user = $this->db->get_where($this->tb_users, ['phone' => $phone])->row();
 
-        $smsResponse = $this->send_sms($phone, "Your OTP is: $otp");
-
-        if ($smsResponse['status']) {
-            if ($this->db->insert($this->tb_users, $data)) {
-                
-                redirect(cn('signin'));
-            } else {
-                $error = array(
-                    "status" => "error",
-                    "message" => lang("There was an error processing your request. Please try again later."),
-                );
-            }
-        } else {
-            $error = array(
-                "status" => "error",
-                "message" => lang("Failed to send OTP ssasa. Please try again."),
-            );
+        if (!$user) {
+            ms(array('status' => 'error', 'message' => lang("User not found.")));
         }
 
-        return $error;
+        if ($user->otp == $otp && strtotime($user->otp_expiry) > time()) {
+            $this->db->update($this->tb_users, ['status' => 1, 'otp' => null, 'otp_expiry' => null], ['id' => $user->id]);
+            ms(array('status' => 'success', 'message' => lang("OTP verified successfully!"), 'redirect' => cn('auth/signin')));
+        } else {
+            ms(array('status' => 'error', 'message' => lang("Invalid or expired OTP.")));
+        }
     }
+
+
     public function send_sms($phoneNumber, $message)
     {
         $url = $this->apiEndpoint;
         $postData = [
-            'api_key'       => $this->apiKey,
-            'api_secret'    => $this->apiSecret,
-            'request_type'  => 'OTP',
-            'message_type'  => 'TEXT',
-            'mobile'        => $phoneNumber,
-            'message_body'  => $message,
+            'api_key' => $this->apiKey,
+            'api_secret' => $this->apiSecret,
+            'request_type' => 'OTP',
+            'message_type' => 'TEXT',
+            'mobile' => $phoneNumber,
+            'message_body' => $message,
         ];
 
         $ch = curl_init($url);
@@ -303,50 +275,42 @@ class Auth extends MX_Controller {
         ]);
 
         $response = curl_exec($ch);
-        if (curl_errno($ch)) {
-            log_message('error', 'Curl error: ' . curl_error($ch));
-        }
         curl_close($ch);
 
         $responseData = json_decode($response, true);
-
-        // Check for successful response based on response code and message
-        if (isset($responseData['api_response_code']) && $responseData['api_response_code'] == 200 && 
-            isset($responseData['api_response_message']) && $responseData['api_response_message'] === 'SUCCESS') {
-            log_message('info', 'OTP sent successfully: ' . json_encode($responseData));
+        if (isset($responseData['api_response_code']) && $responseData['api_response_code'] == 200) {
             return ['status' => true, 'message' => 'OTP sent successfully'];
         } else {
-            log_message('error', 'Failed to send OTP - Response: ' . json_encode($responseData));
             return ['status' => false, 'message' => 'Failed to send OTP'];
         }
     }
 
     // OTP Verification Function
-    public function verify_otp($user_id, $input_otp)
-    {
-        $user = $this->model->get('id, otp, otp_expiry', $this->tb_users, ['id' => $user_id]);
+    // public function verify_otp($user_id, $input_otp)
+    // {
+    //     $user = $this->model->get('id, otp, otp_expiry', $this->tb_users, ['id' => $user_id]);
 
-        if (!$user) {
-            return array(
-                "status" => "error",
-                "message" => lang("User not found."),
-            );
-        }
+    //     if (!$user) {
+    //         return array(
+    //             "status" => "error",
+    //             "message" => lang("User not found."),
+    //         );
+    //     }
 
-        if ($user->otp == $input_otp && strtotime($user->otp_expiry) > time()) {
-            $this->db->update($this->tb_users, ['status' => 1, 'otp' => null, 'otp_expiry' => null], ['id' => $user_id]);
+    //     if ($user->otp == $input_otp && strtotime($user->otp_expiry) > time()) {
+    //         $this->db->update($this->tb_users, ['status' => 1, 'otp' => null, 'otp_expiry' => null], ['id' => $user_id]);
             
-            return array(
-                "status" => "success",
-                "message" => lang("OTP verified successfully. Registration completed!"),
-            );
-        } else {
-            return array(
-                "status" => "error",
-                "message" => lang("Invalid or expired OTP."),
-            );
-        }
-    }
+    //         return array(
+    //             "status" => "success",
+    //             "message" => lang("OTP verified successfully. Registration completed!"),
+    //         );
+    //     } else {
+    //         return array(
+    //             "status" => "error",
+    //             "message" => lang("Invalid or expired OTP."),
+    //         );
+    //     }
+    // }
 
 
 
