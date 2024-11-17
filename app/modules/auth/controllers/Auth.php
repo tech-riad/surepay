@@ -55,7 +55,7 @@ class Auth extends MX_Controller {
         if ($phone == "") {
             ms(array(
                 "status" => "error",
-                "message" => lang("email_is_required"),
+                "message" => lang("phone_is_required"),
             ));
         }
 
@@ -110,33 +110,27 @@ class Auth extends MX_Controller {
         } else {
             ms(array(
                 "status" => "error",
-                "message" => lang("email_and_password_doesnt_match_any_account"),
+                "message" => lang("phone_and_password_doesnt_match_any_account"),
             ));
         }
 	}
 	private function set_login($phone)
     {
-        // Ensure $phone is a string
+        
         if (is_array($phone)) {
-            $phone = implode('', $phone);  // Convert to string if it's an array
+            $phone = implode('', $phone);  
         }
 
-        // Check if phone is still a valid string
         if (!is_string($phone)) {
-            log_message('error', 'Invalid phone format in set_login: ' . print_r($phone, true));
             ms(array('status' => 'error', 'message' => lang("Invalid phone number.")));
         }
 
-        // Get user data from the database
         $user = $this->model->get("id, status, ids, email, password, last_name, first_name", $this->tb_users, ['phone' => $phone]);
 
-        // Check if user exists
         if (!$user) {
-            log_message('error', 'User not found for phone: ' . $phone);
             ms(array('status' => 'error', 'message' => lang("User not found.")));
         }
 
-        // Set session data
         set_session("uid", $user->id);
         $data_session = array(
             'id'   => $user->id,
@@ -147,10 +141,8 @@ class Auth extends MX_Controller {
         set_session('user_current_info', $data_session);
         set_cookie("sessionData", json_encode($data_session), 1209600);
 
-        // Log user IP in history
         $this->model->history_ip($user->id);
 
-        // Handle 'remember me' functionality
         $remember = post("remember");
         if (!empty($remember)) {
             set_cookie("c_cookie_email", encrypt_encode(post("email")), 1209600);
@@ -160,10 +152,8 @@ class Auth extends MX_Controller {
             delete_cookie("c_cookie_pass");
         }
 
-        // Update reset key after login
         $this->db->update($this->tb_users, ['reset_key' => ids()], ['id' => $user->id]);
 
-        // Optionally redirect to dashboard or home
         ms(array('status' => 'success', 'message' => lang("Login successful!"), 'redirect' => cn('dashboard')));
     }
 
@@ -176,29 +166,68 @@ class Auth extends MX_Controller {
 
     public function signup_process()
     {
-        // Your existing validation code
 
+        
         $first_name = post('first_name');
         $last_name = post('last_name');
         $phone = post('phone');
         $password = post('password');
         $re_password = post('re_password');
+        if ($first_name == '' || $last_name == '' || $password == '' || $phone == '') {
+            ms(array(
+                'status' => 'error',
+                'message' => lang("please_fill_in_the_required_fields"),
+            ));
+        }
 
-        // Your existing validation code...
+        if (!preg_match("/^[a-zA-Z ]*$/", $first_name)) {
+            ms(array(
+                'status' => 'error',
+                'message' => lang("only_letters_and_white_space_allowed"),
+            ));
+        }
 
-        $data = [
+        if (!preg_match("/^[a-zA-Z ]*$/", $last_name)) {
+            ms(array(
+                'status' => 'error',
+                'message' => lang("only_letters_and_white_space_allowed"),
+            ));
+        }
+
+        $pattern = '/^[+]?[0-9]{1,4}?[-.\s]?[0-9]{1,11}$/';
+        if (!preg_match($pattern, $phone)) {
+            ms(array(
+                'status' => 'error',
+                'message' => lang("invalid_phone_format"),
+            ));
+        }
+        if ($password != '') {
+            if (strlen($password) < 6) {
+                ms(array(
+                    'status' => 'error',
+                    'message' => lang("Password_must_be_at_least_6_characters_long"),
+                ));
+            }
+
+            if ($re_password != $password) {
+                ms(array(
+                    'status' => 'error',
+                    'message' => lang("Password do not match"),
+                ));
+            }
+        }
+        $data = array(
             'first_name' => $first_name,
-            'last_name' => $last_name,
-            'phone' => $phone,
-            'password' => $password,
-        ];
+			'last_name' => $last_name,
+			'phone' => $phone,
+			'password' => $password,
+		);
 
         $res = $this->set_signup($data);
 
         if ($res['status'] === 'success') {
-            // Set phone number in session after successful signup
             $this->session->set_userdata([
-                'phone' => $phone, // Store the phone number in the session
+                'phone' => $phone,
                 'first_name' => $first_name,
                 'last_name' => $last_name,
             ]);
@@ -231,6 +260,7 @@ class Auth extends MX_Controller {
         if ($smsResponse['status']) {
             if ($this->db->insert($this->tb_users, $data)) {
                 return ['status' => 'success', 'message' => lang("Signup successful, please verify your OTP")];
+                
             } else {
                 return ['status' => 'error', 'message' => lang("Error processing signup, please try again later")];
             }
@@ -251,32 +281,26 @@ class Auth extends MX_Controller {
         $phone = $this->session->userdata('phone');
     
         if (!isset($phone) || empty($phone)) {
-            log_message('error', 'Phone number is not found in session or is empty.');
             ms(array('status' => 'error', 'message' => lang("Phone number not found in session.")));
         }
     
-        log_message('error', 'Retrieved phone from session: ' . print_r($phone, true));
     
         if (is_array($phone)) {
-            log_message('error', 'Phone number is an array. This should be a string. Converting to string: ' . implode(', ', $phone));
             $phone = implode('', $phone);  
         }
     
         $otp = post('otp');
         if (!$otp) {
-            log_message('error', 'OTP not provided in the request.');
             ms(array('status' => 'error', 'message' => lang("OTP not provided.")));
         }
     
         if (!is_string($phone)) {
-            log_message('error', 'Phone number is invalid or not a string.');
             ms(array('status' => 'error', 'message' => lang("Phone number is invalid.")));
         }
     
         $user = $this->db->get_where($this->tb_users, ['phone' => $phone])->row();
     
         if (!$user) {
-            log_message('error', 'User not found for phone: ' . $phone);
             ms(array('status' => 'error', 'message' => lang("User not found.")));
         }
     
@@ -298,14 +322,10 @@ class Auth extends MX_Controller {
     
             ms(array('status' => 'success', 'message' => lang("OTP verified successfully!"), 'redirect' => cn('dashboard')));
         } else {
-            log_message('error', 'Invalid or expired OTP for phone: ' . $phone);
             ms(array('status' => 'error', 'message' => lang("Invalid or expired OTP.")));
         }
     }
     
-
-
-
     public function send_sms($phoneNumber, $message)
     {
         $url = $this->apiEndpoint;
@@ -337,35 +357,6 @@ class Auth extends MX_Controller {
             return ['status' => false, 'message' => 'Failed to send OTP'];
         }
     }
-
-    // OTP Verification Function
-    // public function verify_otp($user_id, $input_otp)
-    // {
-    //     $user = $this->model->get('id, otp, otp_expiry', $this->tb_users, ['id' => $user_id]);
-
-    //     if (!$user) {
-    //         return array(
-    //             "status" => "error",
-    //             "message" => lang("User not found."),
-    //         );
-    //     }
-
-    //     if ($user->otp == $input_otp && strtotime($user->otp_expiry) > time()) {
-    //         $this->db->update($this->tb_users, ['status' => 1, 'otp' => null, 'otp_expiry' => null], ['id' => $user_id]);
-            
-    //         return array(
-    //             "status" => "success",
-    //             "message" => lang("OTP verified successfully. Registration completed!"),
-    //         );
-    //     } else {
-    //         return array(
-    //             "status" => "error",
-    //             "message" => lang("Invalid or expired OTP."),
-    //         );
-    //     }
-    // }
-
-
 
 	public function google_process()
 	{
