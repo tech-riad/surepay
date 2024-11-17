@@ -43,6 +43,7 @@
                     $item_checkbox      = show_item_check_box('check_item', $item['ids']);
                     $full_name = show_high_light(esc($item['first_name']), $params['search'], 'first_name') . " " . show_high_light(esc($item['last_name']), $params['search'], 'last_name');
                     $email = show_high_light(esc($item['email']), $params['search'], 'email');
+                    $phone = show_high_light(esc($item['phone']), $params['search'], 'phone');
                     $item_status        = show_item_status($controller_name, $item['ids'], $item['status'], 'switch');
                     $created            = show_item_datetime($item['created_at'], 'long');
                     $show_item_buttons  = show_item_button_action($controller_name, $item['ids']);
@@ -53,6 +54,7 @@
                     <td>
                       <img src="<?=get_avatar('','merchant',$item['id'])?>" height="20px" class="float-start rounded-circle">
                       <div class="title"><?php echo $full_name; ?></div>
+                      <div class="sub text-muted"><?php echo '0'.$phone; ?></small></div>
                       <div class="sub text-muted"><?php echo $email; ?></small></div>
                     </td>
                     <td class="text-center w-10p"><?php echo (double)$item['balance']; ?></td></td>

@@ -24,7 +24,7 @@ class Users_model extends MY_Model
         $result = null;
        
         if ($option['task'] == 'list-items') {
-            $this->db->select('id, ids, first_name, last_name, email, balance,more_information, history_ip, status, created_at');
+            $this->db->select('id, ids, first_name, last_name,email,phone, balance,more_information, history_ip, status, created_at');
             $this->db->from($this->tb_main);
 
             // filter
@@ -58,7 +58,7 @@ class Users_model extends MY_Model
         }
         
         if ($option['task'] == 'export-list-items') {
-            $result = $this->fetch('id, first_name, last_name, email, timezone, balance, status, created_at', $this->tb_main);
+            $result = $this->fetch('id, first_name, last_name, email,phone, timezone, balance, status, created_at', $this->tb_main);
         }
 
         if ($option['task'] == 'user-price-list-items') {
@@ -76,7 +76,7 @@ class Users_model extends MY_Model
         }
 
         if ($option['task'] == 'items-last-users') {
-            $this->db->select('id, ids, first_name, last_name, email, balance, history_ip, status, created_at');
+            $this->db->select('id, ids, first_name, last_name, email,phone, balance, history_ip, status, created_at');
             $this->db->from($this->tb_main);
             $this->db->order_by('id', 'desc');
             $this->db->limit($params['limit'], 0);
@@ -94,7 +94,7 @@ class Users_model extends MY_Model
         }
         
         if($option['task'] == 'get-item'){
-            $result = $this->get("id, ids, first_name, last_name, timezone, email, balance, history_ip, more_information, status, created_at", $this->tb_main, ['ids' => $params['ids']], '', '', true);
+            $result = $this->get("id, ids, first_name, last_name, timezone,phone, email, balance, history_ip, more_information, status, created_at", $this->tb_main, ['ids' => $params['ids']], '', '', true);
         }
 
         
