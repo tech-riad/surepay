@@ -66,20 +66,6 @@
                            </div>
 
                         <?=form_close();?>
-                        <div class="bottom">
-                           <small>Forgot password? <a href="auth/forgot_password">Reset your password</a></small>
-                           <p>Are You New Member? <a href="<?=base_url('signup')?>">Sign Up</a></p>
-                           <h4>OR</h4>
-                           <ul>
-                              
-                              <li>
-                                 <a href="<?=base_url('auth/google_process')?>">
-                                 <i class="bx bxl-google"></i>
-                                 Connect with Google
-                                 </a>
-                              </li>
-                           </ul>
-                        </div>
                      </div>
                   </div>
                </div>
